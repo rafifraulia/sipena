@@ -18,33 +18,38 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        // Cari user berdasarkan username
-        const user = await prisma.user.findUnique({
-          where: { username: credentials.username }
-        });
+        try {
+          // Cari user berdasarkan username
+          const user = await prisma.user.findUnique({
+            where: { username: credentials.username }
+          });
 
-        // Jika user tidak ditemukan
-        if (!user) {
+          // Jika user tidak ditemukan
+          if (!user) {
+            return null;
+          }
+
+          // Verifikasi password menggunakan bcrypt
+          const isPasswordValid = await bcrypt.compare(
+            credentials.password,
+            user.password
+          );
+
+          // Jika password tidak cocok
+          if (!isPasswordValid) {
+            return null;
+          }
+
+          // Return user data jika autentikasi berhasil
+          return {
+            id: user.id,
+            name: user.username,
+            email: user.username, // NextAuth butuh email, pakai username sebagai fallback
+          };
+        } catch (error) {
+          console.error("Error in authorize:", error);
           return null;
         }
-
-        // Verifikasi password menggunakan bcrypt
-        const isPasswordValid = await bcrypt.compare(
-          credentials.password,
-          user.password
-        );
-
-        // Jika password tidak cocok
-        if (!isPasswordValid) {
-          return null;
-        }
-
-        // Return user data jika autentikasi berhasil
-        return {
-          id: user.id,
-          name: user.username,
-          email: user.username, // NextAuth butuh email, pakai username sebagai fallback
-        };
       }
     })
   ],

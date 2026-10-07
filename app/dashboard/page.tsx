@@ -12,7 +12,7 @@ export default function DashboardPage() {
               Dashboard
             </h1>
             <p className="text-indigo-100 text-sm md:text-base">
-              Selamat datang di SIPENA - Sistem Pengelola Kegiatan & Absensi
+              Selamat datang di SIPENA - Sistem Integrasi Presensi, Event, & Nota Autentikasi
             </p>
           </div>
           <Link href="/dashboard/kegiatan/buat">

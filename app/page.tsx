@@ -2,34 +2,48 @@
 
 import { useState, FormEvent } from "react";
 import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    e.stopPropagation();
+    
     setError("");
+    
+    // Validasi manual
+    if (!username || !password) {
+      setError("Username dan password harus diisi!");
+      return;
+    }
+    
     setIsLoading(true);
 
     try {
       const result = await signIn("credentials", {
-        username,
-        password,
+        username: username.trim(),
+        password: password.trim(),
         redirect: false,
       });
 
       if (result?.error) {
         setError("Username atau password salah!");
+        setIsLoading(false);
       } else if (result?.ok) {
-        // Redirect ke dashboard
-        window.location.href = "/dashboard";
+        router.push("/dashboard");
+        router.refresh();
+      } else {
+        setError("Terjadi kesalahan. Silakan coba lagi.");
+        setIsLoading(false);
       }
     } catch (err) {
       setError("Terjadi kesalahan. Silakan coba lagi.");
-    } finally {
       setIsLoading(false);
     }
   };
@@ -62,7 +76,10 @@ export default function Home() {
             </div>
           )}
 
-          <form className="space-y-5" onSubmit={handleSubmit}>
+          <form 
+            className="space-y-5" 
+            onSubmit={handleLogin}
+          >
             {/* Username Input */}
             <div>
               <label
@@ -74,11 +91,10 @@ export default function Home() {
               <input
                 type="text"
                 id="username"
-                name="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Masukkan username"
-                required
+                autoComplete="username"
                 disabled={isLoading}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
               />
@@ -94,12 +110,11 @@ export default function Home() {
               </label>
               <input
                 id="password"
-                name="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Masukkan password"
-                required
+                autoComplete="current-password"
                 disabled={isLoading}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
               />
