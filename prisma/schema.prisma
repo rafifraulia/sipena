@@ -1,0 +1,60 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Model User untuk login Admin
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}
+
+// Model Kegiatan
+model Kegiatan {
+  id               String     @id @default(cuid())
+  slug             String     @unique
+  nama             String
+  subKegiatan      String?
+  penanggungJawab  String
+  tanggalMulai     DateTime
+  tanggalSelesai   DateTime
+  createdAt        DateTime   @default(now())
+  
+  // Relasi: Satu Kegiatan memiliki banyak Absensi
+  absensi          Absensi[]
+}
+
+// Model Absensi
+model Absensi {
+  id                String   @id @default(cuid())
+  kegiatanId        String
+  nik               String
+  nama              String
+  tempatLahir       String
+  tanggalLahir      DateTime
+  pangkatGolongan   String
+  jabatan           String
+  pendidikan        String
+  instansi          String
+  alamatKantor      String
+  provinsi          String
+  kabupatenKota     String
+  email             String
+  noTelp            String
+  tandaTanganUrl    String?
+  createdAt         DateTime @default(now())
+  
+  // Relasi: Banyak Absensi milik satu Kegiatan
+  kegiatan          Kegiatan @relation(fields: [kegiatanId], references: [id], onDelete: Cascade)
+  
+  @@index([kegiatanId])
+}
