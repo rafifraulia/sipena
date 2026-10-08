@@ -65,9 +65,9 @@ export default function FilterablePesertaTable({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="w-full flex flex-col">
       {/* Filter Hari */}
-      <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">
+      <div className="w-full px-6 py-4 bg-slate-50 border-b border-slate-200">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <span className="text-sm font-medium text-slate-700">Filter Hari:</span>
           <div className="flex flex-wrap gap-2">
@@ -98,13 +98,15 @@ export default function FilterablePesertaTable({
         </div>
       </div>
 
-      {/* Tabel Peserta */}
-      <PesertaTable 
-        key={refreshKey}
-        pesertaList={filteredPeserta} 
-        kegiatan={kegiatan}
-        onRefresh={handleRefresh}
-      />
+      {/* Wrapper Tabel dengan Overflow Control */}
+      <div className="w-full overflow-x-auto">
+        <PesertaTable 
+          key={refreshKey}
+          pesertaList={filteredPeserta} 
+          kegiatan={kegiatan}
+          onRefresh={handleRefresh}
+        />
+      </div>
     </div>
   );
 }

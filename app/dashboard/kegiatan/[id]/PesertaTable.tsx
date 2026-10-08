@@ -112,7 +112,6 @@ export default function PesertaTable({ pesertaList, kegiatan, onRefresh }: Peser
       },
     });
 
-
     
     // Tanda Tangan - jika ada
     if (peserta.tandaTanganUrl) {
@@ -125,21 +124,21 @@ export default function PesertaTable({ pesertaList, kegiatan, onRefresh }: Peser
       img.src = peserta.tandaTanganUrl;
       img.onload = () => {
         doc.addImage(img, "PNG", 14, finalY + 2, 40, 20);
-        const filename = `Biodata_${peserta.nama.replace(/\s+/g, "_")}.pdf`;
-        doc.save(filename);
+        // Buka preview di tab baru
+        window.open(doc.output('bloburl'), '_blank');
       };
       img.onerror = () => {
-        const filename = `Biodata_${peserta.nama.replace(/\s+/g, "_")}.pdf`;
-        doc.save(filename);
+        // Jika gagal load gambar, tetap buka preview
+        window.open(doc.output('bloburl'), '_blank');
       };
     } else {
-      const filename = `Biodata_${peserta.nama.replace(/\s+/g, "_")}.pdf`;
-      doc.save(filename);
+      // Buka preview di tab baru
+      window.open(doc.output('bloburl'), '_blank');
     }
   };
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-slate-200">
+    <div className="w-full">
       <table className="min-w-full divide-y divide-slate-200">
         <thead className="bg-slate-100">
           <tr>
@@ -185,20 +184,18 @@ export default function PesertaTable({ pesertaList, kegiatan, onRefresh }: Peser
                   <div className="flex items-center gap-2">
                     <button 
                       onClick={() => handleDownloadBiodata(peserta, kegiatan)}
-                      className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
+                      className="inline-flex items-center justify-center p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors"
                       title="Cetak Biodata"
                     >
                       <FileText className="h-4 w-4" />
-                      <span className="hidden sm:inline">Cetak</span>
                     </button>
                     <button 
                       onClick={() => handleDeletePeserta(peserta.id, peserta.nama)}
                       disabled={deletingId === peserta.id}
-                      className="inline-flex items-center gap-1 text-red-600 hover:text-red-800 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="inline-flex items-center justify-center p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       title="Hapus Data"
                     >
                       <Trash2 className="h-4 w-4" />
-                      <span className="hidden sm:inline">{deletingId === peserta.id ? 'Menghapus...' : 'Hapus'}</span>
                     </button>
                   </div>
                 </td>

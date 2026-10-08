@@ -34,9 +34,9 @@ export default async function DetailKegiatanPage({ params }: { params: Promise<{
   const totalHari = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 karena inclusive
 
   return (
-    <div className="max-w-[1600px] mx-auto space-y-6">
+    <div className="flex flex-col gap-6 w-full max-w-full overflow-hidden">
       {/* Header - Tombol Kembali */}
-      <div className="mb-6">
+      <div className="w-full">
         <Link
           href="/dashboard/kegiatan"
           className="inline-flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors"
@@ -47,7 +47,7 @@ export default async function DetailKegiatanPage({ params }: { params: Promise<{
       </div>
 
       {/* Card 1: Informasi Kegiatan */}
-      <div className="bg-white p-6 md:p-8 rounded-xl shadow-sm border border-slate-100">
+      <div className="w-full bg-white p-6 md:p-8 rounded-xl shadow-sm border border-slate-100">
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
           {/* Bagian Kiri - Info Utama */}
           <div className="flex-1">
@@ -103,7 +103,7 @@ export default async function DetailKegiatanPage({ params }: { params: Promise<{
       </div>
 
       {/* Card 2: Tabel Peserta Kegiatan */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+      <div className="w-full bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
         {/* Header Card */}
         <div className="p-6 border-b border-slate-200">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
