@@ -18,7 +18,8 @@ export async function GET(request: NextRequest) {
     // Get search params
     const searchParams = request.nextUrl.searchParams;
     const search = searchParams.get('search');
-    const date = searchParams.get('date');
+    const month = searchParams.get('month');
+    const year = searchParams.get('year');
 
     // Build where clause
     const where: any = {};
@@ -31,29 +32,32 @@ export async function GET(request: NextRequest) {
       };
     }
 
-    // Filter by date (tanggal mulai atau selesai mencakup tanggal tersebut)
-    if (date) {
-      const filterDate = new Date(date);
-      where.OR = [
-        {
-          tanggalMulai: {
-            lte: filterDate,
-          },
-          tanggalSelesai: {
-            gte: filterDate,
-          },
-        },
-        {
-          tanggalMulai: {
-            equals: filterDate,
-          },
-        },
-        {
-          tanggalSelesai: {
-            equals: filterDate,
-          },
-        },
-      ];
+    // Filter by month and/or year
+    if (month || year) {
+      if (year && month) {
+        // Filter by both month and year
+        const yearNum = parseInt(year);
+        const monthNum = parseInt(month) - 1; // JS months are 0-indexed
+        const startOfMonth = new Date(yearNum, monthNum, 1);
+        const endOfMonth = new Date(yearNum, monthNum + 1, 0, 23, 59, 59);
+        
+        where.tanggalMulai = {
+          gte: startOfMonth,
+          lte: endOfMonth,
+        };
+      } else if (year) {
+        // Filter by year only
+        const yearNum = parseInt(year);
+        const startOfYear = new Date(yearNum, 0, 1);
+        const endOfYear = new Date(yearNum, 11, 31, 23, 59, 59);
+        
+        where.tanggalMulai = {
+          gte: startOfYear,
+          lte: endOfYear,
+        };
+      }
+      // Note: Month-only filter will be applied after fetch (in memory)
+      // karena Prisma tidak support extract month dari date dengan mudah
     }
 
     const kegiatan = await prisma.kegiatan.findMany({
@@ -68,7 +72,17 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    return NextResponse.json(kegiatan);
+    // Filter by month only (in memory) jika hanya bulan yang dipilih tanpa tahun
+    let filteredKegiatan = kegiatan;
+    if (month && !year) {
+      const monthNum = parseInt(month);
+      filteredKegiatan = kegiatan.filter(k => {
+        const tanggal = new Date(k.tanggalMulai);
+        return tanggal.getMonth() + 1 === monthNum; // getMonth() is 0-indexed
+      });
+    }
+
+    return NextResponse.json(filteredKegiatan);
   } catch (error) {
     console.error('Error fetching kegiatan:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

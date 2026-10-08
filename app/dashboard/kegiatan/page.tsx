@@ -26,42 +26,56 @@ function KegiatanContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
-  const [dateFilter, setDateFilter] = useState(searchParams.get("date") || "");
+  const [monthFilter, setMonthFilter] = useState(searchParams.get("month") || "");
+  const [yearFilter, setYearFilter] = useState(searchParams.get("year") || "");
 
   // Fetch data kegiatan
   useEffect(() => {
     fetchKegiatan();
-  }, [searchTerm, dateFilter]);
+  }, [searchTerm, monthFilter, yearFilter]);
 
   const fetchKegiatan = async () => {
     try {
       setIsLoading(true);
+      setError("");
       
       // Build query params
       const params = new URLSearchParams();
       if (searchTerm) params.append("search", searchTerm);
-      if (dateFilter) params.append("date", dateFilter);
+      if (monthFilter) params.append("month", monthFilter);
+      if (yearFilter) params.append("year", yearFilter);
       
       const response = await fetch(`/api/kegiatan?${params.toString()}`);
       
       if (!response.ok) {
-        throw new Error("Gagal mengambil data kegiatan");
+        let errorMessage = "Gagal mengambil data kegiatan";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (parseError) {
+          // Jika gagal parse JSON, gunakan status text
+          errorMessage = response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
-      setKegiatanList(data);
+      setKegiatanList(Array.isArray(data) ? data : []);
     } catch (err: any) {
-      setError(err.message);
+      console.error("Error fetching kegiatan:", err);
+      setError(err.message || "Terjadi kesalahan saat mengambil data");
+      setKegiatanList([]);
     } finally {
       setIsLoading(false);
     }
   };
 
   // Update URL when filters change
-  const updateURL = (search: string, date: string) => {
+  const updateURL = (search: string, month: string, year: string) => {
     const params = new URLSearchParams();
     if (search) params.append("search", search);
-    if (date) params.append("date", date);
+    if (month) params.append("month", month);
+    if (year) params.append("year", year);
     
     const queryString = params.toString();
     router.push(`/dashboard/kegiatan${queryString ? `?${queryString}` : ""}`, { scroll: false });
@@ -69,12 +83,17 @@ function KegiatanContent() {
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
-    updateURL(value, dateFilter);
+    updateURL(value, monthFilter, yearFilter);
   };
 
-  const handleDateChange = (value: string) => {
-    setDateFilter(value);
-    updateURL(searchTerm, value);
+  const handleMonthChange = (value: string) => {
+    setMonthFilter(value);
+    updateURL(searchTerm, value, yearFilter);
+  };
+
+  const handleYearChange = (value: string) => {
+    setYearFilter(value);
+    updateURL(searchTerm, monthFilter, value);
   };
 
   // Handle delete
@@ -128,16 +147,42 @@ function KegiatanContent() {
                 />
               </div>
 
-              {/* Filter Tanggal Input */}
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
-                <input
-                  type="date"
-                  value={dateFilter}
-                  onChange={(e) => handleDateChange(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm bg-white cursor-pointer"
-                />
-              </div>
+              {/* Filter Bulan */}
+              <select
+                value={monthFilter}
+                onChange={(e) => handleMonthChange(e.target.value)}
+                className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm bg-white"
+              >
+                <option value="">Semua Bulan</option>
+                <option value="1">Januari</option>
+                <option value="2">Februari</option>
+                <option value="3">Maret</option>
+                <option value="4">April</option>
+                <option value="5">Mei</option>
+                <option value="6">Juni</option>
+                <option value="7">Juli</option>
+                <option value="8">Agustus</option>
+                <option value="9">September</option>
+                <option value="10">Oktober</option>
+                <option value="11">November</option>
+                <option value="12">Desember</option>
+              </select>
+
+              {/* Filter Tahun */}
+              <select
+                value={yearFilter}
+                onChange={(e) => handleYearChange(e.target.value)}
+                className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm bg-white"
+              >
+                <option value="">Semua Tahun</option>
+                <option value="2024">2024</option>
+                <option value="2025">2025</option>
+                <option value="2026">2026</option>
+                <option value="2027">2027</option>
+                <option value="2028">2028</option>
+                <option value="2029">2029</option>
+                <option value="2030">2030</option>
+              </select>
             </div>
 
             {/* Right Side - Buat Kegiatan Button */}

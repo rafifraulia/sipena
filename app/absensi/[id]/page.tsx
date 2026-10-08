@@ -5,6 +5,34 @@ import { Lock, XCircle } from "lucide-react";
 
 const prisma = new PrismaClient();
 
+// Helper function untuk hitung hari ke berapa
+function calculateHariKe(tanggalMulai: Date): number {
+  const now = new Date();
+  const start = new Date(tanggalMulai);
+  
+  now.setHours(0, 0, 0, 0);
+  start.setHours(0, 0, 0, 0);
+  
+  const diffTime = now.getTime() - start.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  
+  return diffDays + 1;
+}
+
+// Helper function untuk hitung jumlah hari kegiatan
+function calculateJumlahHari(tanggalMulai: Date, tanggalSelesai: Date): number {
+  const start = new Date(tanggalMulai);
+  const end = new Date(tanggalSelesai);
+  
+  start.setHours(0, 0, 0, 0);
+  end.setHours(0, 0, 0, 0);
+  
+  const diffTime = end.getTime() - start.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  
+  return diffDays + 1;
+}
+
 export default async function FormAbsensiPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: slug } = await params;
   
@@ -19,36 +47,35 @@ export default async function FormAbsensiPage({ params }: { params: Promise<{ id
   // Validasi waktu - cek apakah absensi sudah ditutup
   const now = new Date();
   const endDate = new Date(kegiatan.tanggalSelesai);
-  // Set ke akhir hari (23:59:59.999)
   endDate.setHours(23, 59, 59, 999);
+
+  // Hitung info hari
+  const hariKe = calculateHariKe(kegiatan.tanggalMulai);
+  const jumlahHari = calculateJumlahHari(kegiatan.tanggalMulai, kegiatan.tanggalSelesai);
+  const isMultiHari = jumlahHari > 1;
 
   // Jika sudah melewati batas waktu, tampilkan halaman absensi ditutup
   if (now > endDate) {
     return (
       <div className="flex h-screen items-center justify-center bg-gray-50 px-4">
         <div className="w-full max-w-md">
-          {/* Card dengan shadow */}
           <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
-            {/* Icon Gembok */}
             <div className="flex justify-center mb-6">
               <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center">
                 <Lock className="w-10 h-10 text-red-600" />
               </div>
             </div>
 
-            {/* Judul */}
             <h1 className="text-2xl font-bold text-gray-900 mb-3">
               Absensi Telah Ditutup
             </h1>
 
-            {/* Sub-teks dengan info kegiatan */}
             <p className="text-gray-600 mb-4 leading-relaxed">
               Mohon maaf, batas waktu pengisian absensi untuk kegiatan{" "}
               <span className="font-semibold text-gray-900">&quot;{kegiatan.nama}&quot;</span>{" "}
               telah berakhir.
             </p>
 
-            {/* Info tanggal */}
             <div className="mt-6 pt-6 border-t border-gray-200">
               <p className="text-sm text-gray-500">
                 Periode kegiatan:
@@ -59,16 +86,19 @@ export default async function FormAbsensiPage({ params }: { params: Promise<{ id
                   month: "long",
                   year: "numeric",
                 })}
-                {" - "}
-                {new Date(kegiatan.tanggalSelesai).toLocaleDateString("id-ID", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })}
+                {isMultiHari && (
+                  <>
+                    {" - "}
+                    {new Date(kegiatan.tanggalSelesai).toLocaleDateString("id-ID", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })}
+                  </>
+                )}
               </p>
             </div>
 
-            {/* Icon X Circle di bawah */}
             <div className="mt-6 flex justify-center">
               <XCircle className="w-6 h-6 text-gray-400" />
             </div>
@@ -78,7 +108,16 @@ export default async function FormAbsensiPage({ params }: { params: Promise<{ id
     );
   }
 
-  // Form absensi asli (hanya tampil jika belum melewati batas waktu)
+  // Format tanggal untuk header
+  const formatTanggal = (date: Date) => {
+    return new Date(date).toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  };
+
+  // Form absensi dengan header yang diperbaiki
   return (
     <div className="min-h-screen bg-slate-50 py-8 px-4">
       <div className="text-center mb-8">
@@ -89,19 +128,44 @@ export default async function FormAbsensiPage({ params }: { params: Promise<{ id
         <h2 className="text-xl font-semibold text-slate-700 mb-2">
           Formulir Kehadiran Kegiatan
         </h2>
-        <p className="text-slate-600">
-          <span className="font-medium">{kegiatan.nama}</span>
+        
+        {/* Nama Kegiatan */}
+        <p className="text-slate-900 font-bold text-lg mt-3">
+          {kegiatan.nama}
         </p>
-        <p className="text-sm text-slate-500 mt-1">
-          {new Date(kegiatan.tanggalMulai).toLocaleDateString("id-ID", {
-            weekday: "long",
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-          })}
+        
+        {/* Sub Kegiatan */}
+        {kegiatan.subKegiatan && (
+          <p className="text-slate-600 text-sm mt-1">
+            {kegiatan.subKegiatan}
+          </p>
+        )}
+        
+        {/* Rentang Tanggal */}
+        <p className="text-slate-500 text-sm mt-2">
+          {formatTanggal(kegiatan.tanggalMulai)}
+          {isMultiHari && (
+            <>
+              {" - "}
+              {formatTanggal(kegiatan.tanggalSelesai)}
+            </>
+          )}
         </p>
+        
+        {/* Badge Hari Ke-X (hanya untuk multi-hari) */}
+        {isMultiHari && (
+          <div className="inline-flex items-center justify-center mt-3">
+            <span className="px-4 py-1.5 bg-indigo-100 text-indigo-700 rounded-full text-sm font-semibold">
+              Hari ke-{hariKe} dari {jumlahHari} hari
+            </span>
+          </div>
+        )}
       </div>
-      <AbsensiForm kegiatanId={kegiatan.id} kegiatanNama={kegiatan.nama} />
+      
+      <AbsensiForm 
+        kegiatanId={kegiatan.id} 
+        kegiatanNama={kegiatan.nama}
+      />
     </div>
   );
 }

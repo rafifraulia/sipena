@@ -51,10 +51,12 @@ model Absensi {
   email             String
   noTelp            String
   tandaTanganUrl    String?
+  hariKe            Int      @default(1)
   createdAt         DateTime @default(now())
   
   // Relasi: Banyak Absensi milik satu Kegiatan
   kegiatan          Kegiatan @relation(fields: [kegiatanId], references: [id], onDelete: Cascade)
   
   @@index([kegiatanId])
+  @@index([nik])
 }

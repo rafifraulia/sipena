@@ -9,12 +9,17 @@ const prisma = new PrismaClient();
 // Helper function to save base64 image to file
 async function saveBase64Image(base64Data: string): Promise<string> {
   try {
-    // Remove data:image/png;base64, prefix
-    const base64Image = base64Data.replace(/^data:image\/\w+;base64,/, '');
+    // Detect MIME type (WebP or PNG)
+    const isWebP = base64Data.startsWith('data:image/webp');
+    const isPNG = base64Data.startsWith('data:image/png');
+    
+    // Remove data URL prefix
+    const base64Image = base64Data.replace(/^data:image\/(webp|png);base64,/, '');
     const buffer = Buffer.from(base64Image, 'base64');
     
-    // Generate unique filename
-    const filename = `ttd-${Date.now()}-${randomUUID()}.png`;
+    // Generate unique filename with correct extension
+    const ext = isWebP ? '.webp' : '.png';
+    const filename = `ttd-${Date.now()}-${randomUUID()}${ext}`;
     const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'signatures');
     const filepath = path.join(uploadDir, filename);
     
@@ -30,6 +35,23 @@ async function saveBase64Image(base64Data: string): Promise<string> {
     console.error('Error saving signature image:', error);
     throw new Error('Failed to save signature image');
   }
+}
+
+// Helper function to calculate hariKe
+function calculateHariKe(tanggalMulai: Date): number {
+  const now = new Date();
+  const start = new Date(tanggalMulai);
+  
+  // Reset time to midnight for accurate day comparison
+  now.setHours(0, 0, 0, 0);
+  start.setHours(0, 0, 0, 0);
+  
+  // Calculate difference in days
+  const diffTime = now.getTime() - start.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  
+  // Hari ke-1 dimulai dari tanggal mulai (diffDays = 0)
+  return diffDays + 1;
 }
 
 // POST - Simpan absensi baru
@@ -84,17 +106,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Cek duplikasi NIK untuk kegiatan yang sama
-    const existingAbsensi = await prisma.absensi.findFirst({
+    // Hitung hariKe secara dinamis
+    const hariKe = calculateHariKe(kegiatan.tanggalMulai);
+
+    // Validasi: Cek apakah sudah absen untuk hari ini
+    const existingAbsensiToday = await prisma.absensi.findFirst({
       where: {
         kegiatanId,
-        nik
+        nik,
+        hariKe
       }
     });
 
-    if (existingAbsensi) {
+    if (existingAbsensiToday) {
       return NextResponse.json(
-        { error: 'Anda sudah melakukan absensi untuk kegiatan ini' },
+        { error: 'Anda sudah melakukan absensi untuk hari ini' },
         { status: 409 }
       );
     }
@@ -102,7 +128,7 @@ export async function POST(request: NextRequest) {
     // Save signature image to file system
     const signatureFilePath = await saveBase64Image(tandaTanganUrl);
 
-    // Simpan absensi dengan path file, bukan base64
+    // Simpan absensi dengan hariKe
     const absensi = await prisma.absensi.create({
       data: {
         kegiatanId,
@@ -120,6 +146,7 @@ export async function POST(request: NextRequest) {
         email,
         noTelp,
         tandaTanganUrl: signatureFilePath,
+        hariKe,
       },
     });
 
@@ -136,6 +163,62 @@ export async function POST(request: NextRequest) {
     console.error('Error saving absensi:', error);
     return NextResponse.json({
       error: 'Gagal menyimpan absensi',
+      details: error.message
+    }, { status: 500 });
+  }
+}
+
+// DELETE - Hapus absensi berdasarkan ID
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'ID absensi tidak ditemukan' },
+        { status: 400 }
+      );
+    }
+
+    // Cek apakah absensi ada
+    const absensi = await prisma.absensi.findUnique({
+      where: { id }
+    });
+
+    if (!absensi) {
+      return NextResponse.json(
+        { error: 'Data absensi tidak ditemukan' },
+        { status: 404 }
+      );
+    }
+
+    // Hapus file tanda tangan dari filesystem (optional, untuk cleanup)
+    if (absensi.tandaTanganUrl) {
+      try {
+        const filePath = path.join(process.cwd(), 'public', absensi.tandaTanganUrl);
+        const { unlink } = await import('fs/promises');
+        await unlink(filePath);
+      } catch (error) {
+        console.warn('Failed to delete signature file:', error);
+        // Continue dengan delete DB meskipun file gagal dihapus
+      }
+    }
+
+    // Hapus dari database
+    await prisma.absensi.delete({
+      where: { id }
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: 'Data absensi berhasil dihapus'
+    }, { status: 200 });
+
+  } catch (error: any) {
+    console.error('Error deleting absensi:', error);
+    return NextResponse.json({
+      error: 'Gagal menghapus data absensi',
       details: error.message
     }, { status: 500 });
   }

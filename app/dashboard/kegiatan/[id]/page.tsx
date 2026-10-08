@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { PrismaClient } from "@prisma/client";
 import { notFound } from "next/navigation";
-import PesertaTable from "./PesertaTable";
+import FilterablePesertaTable from "./FilterablePesertaTable";
 import ExportButtons from "./ExportButtons";
 
 const prisma = new PrismaClient();
@@ -27,8 +27,14 @@ export default async function DetailKegiatanPage({ params }: { params: Promise<{
     notFound();
   }
 
+  // Hitung total hari kegiatan
+  const tanggalMulai = new Date(kegiatan.tanggalMulai);
+  const tanggalSelesai = new Date(kegiatan.tanggalSelesai);
+  const diffTime = Math.abs(tanggalSelesai.getTime() - tanggalMulai.getTime());
+  const totalHari = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 karena inclusive
+
   return (
-    <div className="space-y-6">
+    <div className="max-w-[1600px] mx-auto space-y-6">
       {/* Header - Tombol Kembali */}
       <div className="mb-6">
         <Link
@@ -121,17 +127,16 @@ export default async function DetailKegiatanPage({ params }: { params: Promise<{
           </div>
         </div>
 
-        {/* Tabel Peserta - Wrapped untuk scroll horizontal */}
-        <div className="overflow-x-auto w-full">
-          <PesertaTable 
-            pesertaList={kegiatan.absensi} 
-            kegiatan={{
-              nama: kegiatan.nama,
-              tanggalMulai: kegiatan.tanggalMulai,
-              tanggalSelesai: kegiatan.tanggalSelesai
-            }}
-          />
-        </div>
+        {/* Tabel Peserta */}
+        <FilterablePesertaTable 
+          pesertaList={kegiatan.absensi} 
+          kegiatan={{
+            nama: kegiatan.nama,
+            tanggalMulai: kegiatan.tanggalMulai,
+            tanggalSelesai: kegiatan.tanggalSelesai
+          }}
+          totalHari={totalHari}
+        />
       </div>
     </div>
   );
