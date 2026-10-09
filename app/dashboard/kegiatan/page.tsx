@@ -45,9 +45,20 @@ function KegiatanContent() {
       if (monthFilter) params.append("month", monthFilter);
       if (yearFilter) params.append("year", yearFilter);
       
-      const response = await fetch(`/api/kegiatan?${params.toString()}`);
+      const response = await fetch(`/api/kegiatan?${params.toString()}`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       
       if (!response.ok) {
+        if (response.status === 401) {
+          // Redirect to login if unauthorized
+          router.push('/login');
+          return;
+        }
+        
         let errorMessage = "Gagal mengambil data kegiatan";
         try {
           const errorData = await response.json();
@@ -119,9 +130,9 @@ function KegiatanContent() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" suppressHydrationWarning>
       {/* Header Halaman */}
-      <div>
+      <div suppressHydrationWarning>
         <h1 className="text-2xl font-bold text-slate-800">Daftar Kegiatan</h1>
         <p className="text-sm text-slate-600 mt-1">
           Kelola semua data kegiatan pegawai dan absensi

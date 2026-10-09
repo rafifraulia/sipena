@@ -5,6 +5,7 @@ import SignatureCanvas from "react-signature-canvas";
 import { useRouter } from "next/navigation";
 import { getPesertaByNik } from "@/app/actions/absensi";
 import { CheckCircle } from "lucide-react";
+import Link from "next/link";
 
 interface AbsensiFormProps {
   kegiatanId: string;
@@ -192,12 +193,20 @@ export default function AbsensiForm({ kegiatanId, kegiatanNama }: AbsensiFormPro
         <p className="text-slate-600 mb-6">
           Terima kasih sudah melakukan absensi untuk kegiatan <span className="font-semibold">{kegiatanNama}</span>.
         </p>
-        <button
-          onClick={() => window.location.reload()}
-          className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors"
-        >
-          Tutup
-        </button>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
+          <Link
+            href="/"
+            className="inline-flex items-center justify-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-colors shadow-md hover:shadow-lg"
+          >
+            Kembali ke Beranda
+          </Link>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-xl transition-colors"
+          >
+            Isi Absensi Lagi
+          </button>
+        </div>
         <div className="mt-8 pt-6 border-t border-slate-200">
           <p className="text-sm text-slate-500">© 2026 SIPENA. Sistem Pengelola Kegiatan & Absensi</p>
         </div>

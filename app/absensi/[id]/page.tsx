@@ -44,15 +44,79 @@ export default async function FormAbsensiPage({ params }: { params: Promise<{ id
     notFound();
   }
 
-  // Validasi waktu - cek apakah absensi sudah ditutup
+  // Validasi waktu - cek apakah kegiatan belum dimulai atau sudah ditutup
   const now = new Date();
+  const startDate = new Date(kegiatan.tanggalMulai);
   const endDate = new Date(kegiatan.tanggalSelesai);
+  
+  // Set waktu untuk perbandingan
+  now.setHours(0, 0, 0, 0);
+  startDate.setHours(0, 0, 0, 0);
   endDate.setHours(23, 59, 59, 999);
 
   // Hitung info hari
   const hariKe = calculateHariKe(kegiatan.tanggalMulai);
   const jumlahHari = calculateJumlahHari(kegiatan.tanggalMulai, kegiatan.tanggalSelesai);
   const isMultiHari = jumlahHari > 1;
+
+  // Jika kegiatan belum dimulai
+  if (now < startDate) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-50 px-4">
+        <div className="w-full max-w-md">
+          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+            <div className="flex justify-center mb-6">
+              <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center">
+                <Lock className="w-10 h-10 text-yellow-600" />
+              </div>
+            </div>
+
+            <h1 className="text-2xl font-bold text-gray-900 mb-3">
+              Kegiatan Belum Dimulai
+            </h1>
+
+            <p className="text-gray-600 mb-4 leading-relaxed">
+              Mohon maaf, kegiatan{" "}
+              <span className="font-semibold text-gray-900">&quot;{kegiatan.nama}&quot;</span>{" "}
+              belum dimulai. Formulir absensi akan dapat diisi pada tanggal kegiatan.
+            </p>
+
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <p className="text-sm text-gray-500">
+                Kegiatan akan dimulai pada:
+              </p>
+              <p className="text-lg font-bold text-indigo-600 mt-2">
+                {new Date(kegiatan.tanggalMulai).toLocaleDateString("id-ID", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </p>
+              {isMultiHari && (
+                <p className="text-sm text-gray-500 mt-2">
+                  s.d.{" "}
+                  {new Date(kegiatan.tanggalSelesai).toLocaleDateString("id-ID", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </p>
+              )}
+            </div>
+
+            <div className="mt-6">
+              <a
+                href="/"
+                className="inline-block px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-colors"
+              >
+                Kembali ke Beranda
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Jika sudah melewati batas waktu, tampilkan halaman absensi ditutup
   if (now > endDate) {
@@ -100,7 +164,12 @@ export default async function FormAbsensiPage({ params }: { params: Promise<{ id
             </div>
 
             <div className="mt-6 flex justify-center">
-              <XCircle className="w-6 h-6 text-gray-400" />
+              <a
+                href="/"
+                className="inline-block px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-colors"
+              >
+                Kembali ke Beranda
+              </a>
             </div>
           </div>
         </div>
