@@ -1,11 +1,9 @@
 import Link from "next/link";
 import { ArrowLeft, ExternalLink } from "lucide-react";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import FilterablePesertaTable from "./FilterablePesertaTable";
 import ExportButtons from "./ExportButtons";
-
-const prisma = new PrismaClient();
 
 export default async function DetailKegiatanPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

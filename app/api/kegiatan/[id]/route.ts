@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../auth/[...nextauth]/route';
-
-const prisma = new PrismaClient();
 
 // GET - Ambil detail kegiatan by ID
 export async function GET(
@@ -107,6 +105,19 @@ export async function PUT(
 
     if (!existingKegiatan) {
       return NextResponse.json({ error: 'Kegiatan tidak ditemukan' }, { status: 404 });
+    }
+
+    // Validasi: Cek apakah kegiatan sudah dimulai
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const startDate = new Date(existingKegiatan.tanggalMulai);
+    startDate.setHours(0, 0, 0, 0);
+
+    if (startDate <= today) {
+      return NextResponse.json(
+        { error: 'Kegiatan yang sudah dimulai atau berlangsung tidak dapat diedit' },
+        { status: 403 }
+      );
     }
 
     // Update kegiatan

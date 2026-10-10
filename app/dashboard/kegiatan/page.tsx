@@ -55,7 +55,7 @@ function KegiatanContent() {
       if (!response.ok) {
         if (response.status === 401) {
           // Redirect to login if unauthorized
-          router.push('/login');
+          router.push('/gerbang-admin');
           return;
         }
         
@@ -288,14 +288,24 @@ function KegiatanContent() {
                             <Eye className="h-4 w-4" />
                           </button>
                         </Link>
-                        <Link href={`/dashboard/kegiatan/${kegiatan.id}/edit`}>
+                        {new Date(kegiatan.tanggalMulai) > new Date() ? (
+                          <Link href={`/dashboard/kegiatan/${kegiatan.id}/edit`}>
+                            <button
+                              className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                              title="Edit Kegiatan"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </button>
+                          </Link>
+                        ) : (
                           <button
-                            className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
-                            title="Edit Kegiatan"
+                            disabled
+                            className="p-2 text-slate-300 cursor-not-allowed rounded-lg"
+                            title="Tidak dapat diedit karena kegiatan sudah berlangsung"
                           >
                             <Edit className="h-4 w-4" />
                           </button>
-                        </Link>
+                        )}
                         <button
                           onClick={() => handleDelete(kegiatan.id, kegiatan.nama)}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"

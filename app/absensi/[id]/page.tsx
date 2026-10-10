@@ -1,9 +1,7 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import AbsensiForm from "./AbsensiForm";
 import { Lock, XCircle } from "lucide-react";
-
-const prisma = new PrismaClient();
 
 // Helper function untuk hitung hari ke berapa
 function calculateHariKe(tanggalMulai: Date): number {

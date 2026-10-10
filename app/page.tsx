@@ -1,12 +1,14 @@
 import Link from "next/link";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import { Calendar, Users, ChevronRight } from "lucide-react";
-
-const prisma = new PrismaClient();
+import { getPengaturan } from "./actions/pengaturan";
 
 export default async function HomePage() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+
+  // Fetch pengaturan untuk running text
+  const pengaturan = await getPengaturan();
 
   const kegiatanList = await prisma.kegiatan.findMany({
     where: {
@@ -76,15 +78,20 @@ export default async function HomePage() {
                 <p className="text-xs text-slate-500">Sistem Pengelola Kegiatan</p>
               </div>
             </div>
-            <Link 
-              href="/login"
-              className="px-4 py-2 text-sm font-medium text-slate-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-            >
-              Login Admin
-            </Link>
           </div>
         </div>
       </header>
+
+      {/* Running Text / Pengumuman */}
+      {pengaturan.runningText && (
+        <div className="bg-indigo-600 text-white py-3 overflow-hidden w-full relative" suppressHydrationWarning>
+          <div className="animate-marquee">
+            <span className="text-sm font-medium">
+              📢 {pengaturan.runningText}
+            </span>
+          </div>
+        </div>
+      )}
 
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center mb-12" suppressHydrationWarning>

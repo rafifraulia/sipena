@@ -76,17 +76,19 @@ export default function ExportButtons({ kegiatan }: ExportButtonsProps) {
 
   const handleModalConfirm = () => {
     setShowModal(false);
-    setIsExporting(true);
-    setExportProgress(0);
-    setExportStatus("Memulai export...");
     
     if (exportType === "pdf") {
+      setIsExporting(true);
+      setExportProgress(0);
+      setExportStatus("Memulai export...");
+      
       if (selectedHari === 'all') {
         handleDownloadPDFAllDays();
       } else {
         handleDownloadPDF(selectedHari);
       }
     } else {
+      // Excel langsung download tanpa progress bar
       if (selectedHari === 'all') {
         handleDownloadExcel('all');
       } else {
@@ -690,7 +692,7 @@ export default function ExportButtons({ kegiatan }: ExportButtonsProps) {
           <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
             <div className="text-center">
               <h3 className="text-lg font-bold text-slate-800 mb-4">
-                Mengexport PDF...
+                {exportType === "pdf" ? "Mengexport PDF..." : "Mengexport Excel..."}
               </h3>
               
               {/* Progress Bar */}

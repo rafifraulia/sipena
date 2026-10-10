@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import { randomUUID } from 'crypto';
-
-const prisma = new PrismaClient();
 
 // Helper function to save base64 image to file
 async function saveBase64Image(base64Data: string): Promise<string> {

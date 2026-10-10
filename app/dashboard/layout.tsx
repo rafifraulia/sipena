@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Home, Calendar, User, Menu, X, LogOut, ChevronDown } from "lucide-react";
+import { Home, Calendar, User, Menu, X, LogOut, ChevronDown, Settings } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -114,6 +114,16 @@ export default function DashboardLayout({
           >
             <Calendar className="w-5 h-5 flex-shrink-0" />
             <span className={isCollapsed ? "lg:hidden" : ""}>Kegiatan</span>
+          </Link>
+
+          <Link
+            href="/dashboard/pengaturan"
+            onClick={() => setIsSidebarOpen(false)}
+            className={`flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors font-medium ${isCollapsed ? "lg:justify-center lg:px-0" : ""}`}
+            title="Pengaturan"
+          >
+            <Settings className="w-5 h-5 flex-shrink-0" />
+            <span className={isCollapsed ? "lg:hidden" : ""}>Pengaturan</span>
           </Link>
         </nav>
 
