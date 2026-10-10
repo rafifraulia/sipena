@@ -27,6 +27,7 @@ model Kegiatan {
   penanggungJawab  String
   tanggalMulai     DateTime
   tanggalSelesai   DateTime
+  flyerUrl         String?
   createdAt        DateTime   @default(now())
   
   // Relasi: Satu Kegiatan memiliki banyak Absensi

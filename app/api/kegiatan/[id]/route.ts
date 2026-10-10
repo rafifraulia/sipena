@@ -88,7 +88,7 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const { nama, subKegiatan, penanggungJawab, tanggalMulai, tanggalSelesai } = body;
+    const { nama, subKegiatan, penanggungJawab, tanggalMulai, tanggalSelesai, flyerUrl } = body;
 
     // Validasi input
     if (!nama || !penanggungJawab || !tanggalMulai || !tanggalSelesai) {
@@ -129,6 +129,7 @@ export async function PUT(
         penanggungJawab,
         tanggalMulai: new Date(tanggalMulai),
         tanggalSelesai: new Date(tanggalSelesai),
+        flyerUrl: flyerUrl !== undefined ? flyerUrl : existingKegiatan.flyerUrl,
       },
     });
 
